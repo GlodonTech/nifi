@@ -335,7 +335,7 @@ public class CaptureChangeMySQL extends AbstractSessionFactoryProcessor {
                     + "is supported, but this property is evaluated when the processor is configured, so FlowFile attributes may not be used. Expression Language is "
                     + "supported to enable the use of the Variable Registry and/or environment properties.")
             .required(false)
-            .addValidator(StandardValidators.NON_NEGATIVE_INTEGER_VALIDATOR)
+            .addValidator(StandardValidators.INTEGER_VALIDATOR)
             .expressionLanguageSupported(ExpressionLanguageScope.VARIABLE_REGISTRY)
             .build();
 
@@ -491,7 +491,10 @@ public class CaptureChangeMySQL extends AbstractSessionFactoryProcessor {
             currentGtidSet = stateMap.get(BinlogEventInfo.BINLOG_GTIDSET_KEY);
             if (currentGtidSet == null) {
                 if (!getAllRecords && context.getProperty(INIT_BINLOG_GTID).isSet()) {
-                    currentGtidSet = context.getProperty(INIT_BINLOG_GTID).evaluateAttributeExpressions().getValue();
+                    String gtidSet = context.getProperty(INIT_BINLOG_GTID).evaluateAttributeExpressions().getValue();
+                    if (!"default".equalsIgnoreCase(gtidSet)) {
+                        currentGtidSet = gtidSet;
+                    }
                 } else {
                     // If we're starting from the beginning of all binlogs, the binlog gtid must be the empty string (not null)
                     currentGtidSet = "";
@@ -505,7 +508,10 @@ public class CaptureChangeMySQL extends AbstractSessionFactoryProcessor {
             if (currentBinlogFile == null) {
                 if (!getAllRecords) {
                     if (context.getProperty(INIT_BINLOG_FILENAME).isSet()) {
-                        currentBinlogFile = context.getProperty(INIT_BINLOG_FILENAME).evaluateAttributeExpressions().getValue();
+                        String binlogFile = context.getProperty(INIT_BINLOG_FILENAME).evaluateAttributeExpressions().getValue();
+                        if (!"default".equalsIgnoreCase(binlogFile)) {
+                            currentBinlogFile = binlogFile;
+                        }
                     }
                 } else {
                     // If we're starting from the beginning of all binlogs, the binlog filename must be the empty string (not null)
